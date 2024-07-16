@@ -14,4 +14,7 @@ export class LoginComponent {
   landingPage() {
     this.router.navigate(['/home']);
   }
+  login() {
+    window.location.href = 'http://localhost:3000/auth/github';
+  }
 }

@@ -4,6 +4,7 @@ import express from 'express';
 import nodemailer from 'nodemailer';
 import cors from 'cors'; 
 import multer from 'multer';
+import fetch from 'node-fetch';
 
 dotenv.config();
 
@@ -79,6 +80,34 @@ function sendMail(name, email, message, file, res) {
     }
   });
 }
+
+
+app.get('/auth/github', (req, res) => {
+  const githubAuthUrl = 'https://github.com/login/oauth/authorize';
+  const clientId = process.env.GITHUB_CLIENT_ID;
+  res.redirect(`${githubAuthUrl}?client_id=${clientId}`);
+});
+
+app.get('/auth/github/callback', async (req, res) => {
+  const code = req.query.code;
+  const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      client_id: process.env.GITHUB_CLIENT_ID,
+      client_secret: process.env.GITHUB_CLIENT_SECRET,
+      code,
+    }),
+  });
+
+  const tokenData = await tokenResponse.json();
+  // Here you would typically create a session or JWT for the user
+  // For this example, we'll just send the access token back to the client
+  res.redirect(`http://localhost:4200/login?token=${tokenData.access_token}`);
+});
 
 app.listen(3000, () => {
   console.log('Server started on port 3000');
